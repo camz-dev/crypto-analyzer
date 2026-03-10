@@ -1,10 +1,10 @@
 // =============================================
-// GRÁFICO DE CANDLESTICK
+// GRÁFICO DE CANDLESTICK (VERSÃO SIMPLIFICADA)
 // =============================================
 
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import {
   ComposedChart,
   Line,
@@ -35,60 +35,68 @@ interface CandlestickChartProps {
   coinName: string
 }
 
+// Preços base
+const BASE_PRICES: Record<string, number> = {
+  bitcoin: 97000,
+  ethereum: 3400,
+  solana: 195,
+  ripple: 2.4,
+  dogecoin: 0.38
+}
+
+// Função para gerar candles
+function generateCandlesData(coinId: string, periodDays: number) {
+  const basePrice = BASE_PRICES[coinId] || 100
+  const intervalMs = periodDays <= 1 ? 30 * 60 * 1000 : 
+                     periodDays <= 7 ? 4 * 60 * 60 * 1000 : 
+                     24 * 60 * 60 * 1000
+
+  const totalCandles = Math.min(Math.ceil((periodDays * 24 * 60 * 60 * 1000) / intervalMs), 100)
+  const now = Date.now()
+  let currentPrice = basePrice
+
+  const generatedCandles = []
+
+  for (let i = 0; i < totalCandles; i++) {
+    const timestamp = now - (totalCandles - i) * intervalMs
+    const volatility = basePrice * 0.025
+    const open = currentPrice
+    const change = (Math.random() - 0.5) * volatility
+    const close = open + change
+    const high = Math.max(open, close) + Math.random() * volatility * 0.3
+    const low = Math.min(open, close) - Math.random() * volatility * 0.3
+
+    generatedCandles.push({
+      timestamp,
+      time: Math.floor(timestamp / 1000),
+      open,
+      high,
+      low,
+      close,
+      volume: Math.random() * 1000000000
+    })
+
+    currentPrice = close
+  }
+
+  return generatedCandles
+}
+
 export function CandlestickChart({
   coinId,
   coinSymbol,
   coinName
 }: CandlestickChartProps) {
-  const [period, setPeriod] = useState<1 | 7 | 30 | 90>(7)
-  const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState(7)
   const [visibleCandles, setVisibleCandles] = useState(50)
-  const [candles, setCandles] = useState<any[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  // Gerar dados simulados
-  useEffect(() => {
-    setLoading(true)
-    
-    const basePrice = coinId === "bitcoin" ? 97000 :
-                      coinId === "ethereum" ? 3400 :
-                      coinId === "solana" ? 195 :
-                      coinId === "ripple" ? 2.4 : 0.38
-
-    const interval = period <= 1 ? 30 * 60 * 1000 : 
-                     period <= 7 ? 4 * 60 * 60 * 1000 : 
-                     24 * 60 * 60 * 1000
-
-    const totalCandles = Math.min(Math.ceil((period * 24 * 60 * 60 * 1000) / interval), 100)
-    const now = Date.now()
-    let currentPrice = basePrice
-
-    const generatedCandles = []
-
-    for (let i = 0; i < totalCandles; i++) {
-      const timestamp = now - (totalCandles - i) * interval
-      const volatility = basePrice * 0.025
-      const open = currentPrice
-      const change = (Math.random() - 0.5) * volatility
-      const close = open + change
-      const high = Math.max(open, close) + Math.random() * volatility * 0.3
-      const low = Math.min(open, close) - Math.random() * volatility * 0.3
-
-      generatedCandles.push({
-        timestamp,
-        time: Math.floor(timestamp / 1000),
-        open,
-        high,
-        low,
-        close,
-        volume: Math.random() * 1000000000
-      })
-
-      currentPrice = close
-    }
-
-    setCandles(generatedCandles)
-    setLoading(false)
-  }, [coinId, period])
+  // Gerar dados memoized
+  const candles = useMemo(() => 
+    generateCandlesData(coinId, period),
+    [coinId, period, refreshKey]
+  )
 
   // Preparar dados para o gráfico
   const chartData = useMemo(() => {
@@ -124,12 +132,20 @@ export function CandlestickChart({
     }
   }, [chartData])
 
-  const formatPrice = (price: number) => {
+  const formatPrice = useCallback((price: number) => {
     if (price >= 1000) {
       return `$${price.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
     }
     return `$${price.toFixed(price < 1 ? 4 : 2)}`
-  }
+  }, [])
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true)
+    setTimeout(() => {
+      setRefreshKey(k => k + 1)
+      setIsRefreshing(false)
+    }, 500)
+  }, [])
 
   return (
     <Card className="bg-gray-800/50 border-gray-700">
@@ -169,7 +185,7 @@ export function CandlestickChart({
           </div>
 
           <div className="flex items-center gap-2">
-            <Tabs value={period.toString()} onValueChange={(v) => setPeriod(Number(v) as any)}>
+            <Tabs value={period.toString()} onValueChange={(v) => setPeriod(Number(v))}>
               <TabsList className="bg-gray-900 border-gray-700">
                 <TabsTrigger value="1" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">1D</TabsTrigger>
                 <TabsTrigger value="7" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">7D</TabsTrigger>
@@ -178,6 +194,9 @@ export function CandlestickChart({
               </TabsList>
             </Tabs>
 
+            <Button variant="ghost" size="icon" onClick={handleRefresh} className="text-gray-400 hover:text-white">
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => setVisibleCandles(Math.min(visibleCandles + 10, candles.length))} className="text-gray-400 hover:text-white">
               <ZoomOut className="h-4 w-4" />
             </Button>
@@ -192,7 +211,7 @@ export function CandlestickChart({
       </CardHeader>
 
       <CardContent>
-        {loading ? (
+        {isRefreshing ? (
           <div className="h-[400px] flex items-center justify-center">
             <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin" />
           </div>
