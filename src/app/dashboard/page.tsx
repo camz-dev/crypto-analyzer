@@ -6,7 +6,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { PriceCard, PriceCardSkeleton } from "@/components/dashboard/price-card"
 import { CandlestickChart } from "@/components/charts/candlestick-chart"
@@ -94,8 +94,6 @@ function StatsBar({ prices }: StatsBarProps) {
 // COMPONENTE PRINCIPAL
 // =============================================
 export default function DashboardPage() {
-  const router = useRouter()
-  
   // Buscar dados da API
   const { prices, loading, error } = useCryptoAPI()
 
@@ -236,8 +234,8 @@ export default function DashboardPage() {
                     Acesse a página de trading completa com gráfico em tempo real e bot de análise.
                   </p>
                   <button
-                    onClick={() => router.push("/trading")}
-                    className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors"
+                    onClick={() => window.location.href = "/trading"}
+                    className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors cursor-pointer"
                   >
                     Ir para Trading →
                   </button>

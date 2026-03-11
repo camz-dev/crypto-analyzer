@@ -5,11 +5,9 @@
 
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -19,16 +17,13 @@ import {
 } from "@/components/ui/select"
 import {
   TrendingUp,
-  TrendingDown,
-  Clock,
-  BarChart3,
-  LineChart,
   Activity
 } from "lucide-react"
-
+import Link from "next/link"
 import { RealtimeCandlestickChart } from "@/components/charts/realtime-candlestick-chart"
-
 import { TradingBotPanel } from "@/components/dashboard/trading-bot-panel"
+
+type TimeInterval = "5s" | "15s" | "30s" | "1m" | "5m" | "15m"
 
 // Preços base
 const BASE_PRICES: Record<string, number> = {
@@ -41,7 +36,6 @@ const BASE_PRICES: Record<string, number> = {
 
 export default function TradingPage() {
   const [selectedCoin, setSelectedCoin] = useState<string>("bitcoin")
-  const [interval, setInterval] = useState<TimeInterval>("5s")
   const [currentPrice, setCurrentPrice] = useState(BASE_PRICES["bitcoin"])
   const [priceChange, setPriceChange] = useState(0)
   
@@ -50,11 +44,10 @@ export default function TradingPage() {
     setPriceChange(change)
   }
   
-  const handleIntervalChange = (newInterval: TimeInterval) => {
-    setInterval(newInterval)
+  const handleIntervalChange = (_newInterval: TimeInterval) => {
+    // Intervalo gerenciado pelo componente do gráfico
   }
 
-  
   const coins = [
     { id: "bitcoin", symbol: "BTC", name: "Bitcoin" },
     { id: "ethereum", symbol: "ETH", name: "Ethereum" },
@@ -76,12 +69,16 @@ export default function TradingPage() {
           </div>
           
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => window.location.href = "/dashboard"} className="text-gray-400">
-              Dashboard
-            </Button>
-            <Button variant="ghost" size="sm" className="text-emerald-400 bg-emerald-500/10">
-              Trading
-            </Button>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="text-gray-400">
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/trading">
+              <Button variant="ghost" size="sm" className="text-emerald-400 bg-emerald-500/10">
+                Trading
+              </Button>
+            </Link>
           </nav>
         </div>
       </header>
@@ -93,7 +90,7 @@ export default function TradingPage() {
           <p className="text-gray-400">Gráfico de velas com análise automatizada</p>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 mb-4">
           {/* Coin Selector */}
           <Select value={selectedCoin} onValueChange={(v) => {
             const coin = coins.find(c => c.id === v)
@@ -114,7 +111,7 @@ export default function TradingPage() {
             </SelectContent>
           </Select>
           
-          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 w-fit">
             <Activity className="h-3 w-3 mr-1 animate-pulse" />
             Tempo Real
           </Badge>

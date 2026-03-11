@@ -2,9 +2,6 @@
 // PÁGINA INICIAL - LANDING PAGE
 // =============================================
 
-"use client"
-
-import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,8 +19,6 @@ import {
 } from "lucide-react"
 
 export default function LandingPage() {
-  const router = useRouter()
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-900">
       {/* Header */}
@@ -39,13 +34,12 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <Button
-            onClick={() => router.push("/dashboard")}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
-          >
-            Acessar Dashboard
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <a href="/dashboard">
+            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2 cursor-pointer">
+              Acessar Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </a>
         </div>
       </header>
 
@@ -66,15 +60,16 @@ export default function LandingPage() {
               Dashboard profissional com indicadores técnicos, gráficos interativos e bot de análise automatizado.
             </p>
             
-            <Button
-              onClick={() => router.push("/dashboard")}
-              size="lg"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white text-lg px-8 py-6 gap-2"
-            >
-              <Zap className="h-5 w-5" />
-              Começar Agora
-              <ArrowRight className="h-5 w-5" />
-            </Button>
+            <a href="/dashboard">
+              <Button
+                size="lg"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-lg px-8 py-6 gap-2 cursor-pointer"
+              >
+                <Zap className="h-5 w-5" />
+                Começar Agora
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </a>
           </div>
 
           {/* Features */}
@@ -170,7 +165,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-800 bg-gray-900/80 py-6">
+      <footer className="w-full border-t border-gray-800 bg-gray-900/80 py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm text-gray-500">
             © 2024 CryptoAnalyzer. Dados em tempo real via CoinGecko API.
